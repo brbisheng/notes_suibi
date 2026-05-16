@@ -132,3 +132,6 @@ button {
 }
 
 .btn-link { color: var(--accent); text-decoration: none; font-size: 14px; }
+
+.quick-nav { display: flex; gap: 8px; margin: 0 0 14px; }
+.nav-btn { display: inline-block; width: auto; padding: 10px 12px; border-radius: 8px; background: var(--accent); color: #fff; text-decoration: none; font-size: 14px; }

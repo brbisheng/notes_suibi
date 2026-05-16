@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Today</title><link rel="stylesheet" href="/static/style.css" /></head>
+<body>
+<main class="container">
+  <h1>Today</h1>
+  <p><a class="btn-link" href="/">返回首页</a></p>
+  {% for source, entries in grouped_entries.items() %}
+    <section class="recent">
+      <h2>来源：{{ source }}</h2>
+      {% if entries %}
+      <ul>{% for entry in entries %}<li><div class="meta"><span>{{ entry.created_at }}</span><span>{{ entry.record_type }}</span></div><p>{{ entry.raw_content }}</p></li>{% endfor %}</ul>
+      {% else %}<p class="empty">暂无记录。</p>{% endif %}
+    </section>
+  {% endfor %}
+</main>
+</body>
+</html>

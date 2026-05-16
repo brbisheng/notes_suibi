@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Search</title><link rel="stylesheet" href="/static/style.css" /></head>
+<body><main class="container"><h1>Search</h1><p><a class="btn-link" href="/">返回首页</a></p>
+<form method="get" action="/search" class="entry-form">
+  <label>关键词</label><input type="text" name="keyword" value="{{ filters.keyword }}" />
+  <label>类型</label><select name="record_type"><option value="">全部</option>{% for item in record_types %}<option value="{{ item }}" {% if filters.record_type == item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select>
+  <label>开始日期</label><input type="date" name="start_date" value="{{ filters.start_date }}" />
+  <label>结束日期</label><input type="date" name="end_date" value="{{ filters.end_date }}" />
+  <button type="submit">搜索</button>
+</form>
+<section class="recent"><h2>结果</h2>{% if results %}<ul>{% for entry in results %}<li><div class="meta"><span>{{ entry.date }}</span><span>{{ entry.record_type }}</span><span>{{ entry.source_type }}</span></div><p>{{ entry.raw_content }}</p></li>{% endfor %}</ul>{% else %}<p class="empty">没有找到结果。</p>{% endif %}</section>
+</main></body></html>
