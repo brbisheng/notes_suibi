@@ -149,3 +149,23 @@ bash scripts/smoke_check.sh http://127.0.0.1:8000
 - 登录失败按 `IP + 会话标识` 计数，连续失败 5 次锁定 10 分钟。
 - 失败记录持久化在 SQLite 的 `auth_attempts` 表中，服务重启后不会丢失。
 - 本方案仅用于 MVP 基础防护，**不替代企业级 IAM/SSO、多因素认证、细粒度 RBAC、审计合规能力**。
+
+
+## 10) Schema 版本与变更日志
+
+当前 schema 版本：`v1`（通过 SQLite `PRAGMA user_version` 管理）。
+
+### 字段命名策略（统一约定）
+
+- 状态类字段统一使用 `*_status` 后缀（如 `parse_status`、`llm_status`）。
+- 避免布尔字段与枚举字段表达同一语义（例如 `manual` 与 `source_type=manual` 二选一，旧字段仅保留兼容）。
+- 历史兼容字段不立即删除，后续通过 `migrations/` 增量迁移。
+
+### 变更日志
+
+- **v1 (2026-05-16)**
+  - 建立 `migrations/` 目录，预留跨机器升级脚本入口。
+  - 增加 `migrations/0001_baseline_schema_v1.sql`，记录命名规范与兼容策略。
+  - 增加 `migrations/0002_session_turns_status_alignment.sql`，对齐 `session_turns.llm_status`。
+  - `scripts/init_db.py` 增加幂等版本检查提示，避免误以为会覆盖已有数据。
+  - `app/db.py` 在初始化阶段写入 schema 版本，并对 `session_turns.llm_status` 做幂等补齐。
