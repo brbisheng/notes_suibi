@@ -58,6 +58,22 @@ MVP_TABLE_SQL = [
         FOREIGN KEY (session_id) REFERENCES sessions(id)
     );
     """,
+
+    """
+    CREATE TABLE IF NOT EXISTS llm_outputs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        target_type TEXT NOT NULL,
+        target_id INTEGER NOT NULL,
+        summary TEXT NOT NULL,
+        category TEXT NOT NULL,
+        action_items_json TEXT NOT NULL,
+        tags_json TEXT NOT NULL,
+        is_life_insight INTEGER NOT NULL DEFAULT 0,
+        model TEXT NOT NULL,
+        raw_json TEXT NOT NULL,
+        created_at TEXT NOT NULL
+    );
+    """,
     """
     CREATE TABLE IF NOT EXISTS auth_attempts (
         ip TEXT NOT NULL,

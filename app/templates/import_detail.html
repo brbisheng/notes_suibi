@@ -59,6 +59,8 @@
               <p><strong>User:</strong> {{ turn.user_request or '（空）' }}</p>
               <p><strong>Summary:</strong> {{ turn.final_summary or '（空）' }}</p>
               {% if turn.raw_refs_json %}<p><strong>Refs:</strong> {{ turn.raw_refs_json }}</p>{% endif %}
+              {% if turn.llm_summary %}<p><strong>最近整理:</strong> {{ turn.llm_summary }}（{{ turn.llm_model }} @ {{ turn.llm_created_at }}）</p>{% endif %}
+              <form method="post" action="/organize/turn/{{ turn.id }}"><input type="hidden" name="import_id" value="{{ raw.id }}" /><button type="submit">整理</button></form>
             </li>
           {% endfor %}
         </ul>

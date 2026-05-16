@@ -9,7 +9,7 @@
     <section class="recent">
       <h2>来源：{{ source }}</h2>
       {% if entries %}
-      <ul>{% for entry in entries %}<li><div class="meta"><span>{{ entry.created_at }}</span><span>{{ entry.record_type }}</span></div><p>{{ entry.raw_content }}</p></li>{% endfor %}</ul>
+      <ul>{% for entry in entries %}<li><div class="meta"><span>{{ entry.created_at }}</span><span>{{ entry.record_type }}</span></div><p>{{ entry.raw_content }}</p>{% if entry.llm_summary %}<p><strong>最近整理:</strong> {{ entry.llm_summary }}（{{ entry.llm_model }} @ {{ entry.llm_created_at }}）</p>{% endif %}<form method="post" action="/organize/entry/{{ entry.id }}"><button type="submit">整理</button></form></li>{% endfor %}</ul>
       {% else %}<p class="empty">暂无记录。</p>{% endif %}
     </section>
   {% endfor %}

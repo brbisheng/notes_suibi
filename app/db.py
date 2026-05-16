@@ -29,4 +29,5 @@ def init_db() -> None:
             cursor.execute("ALTER TABLE session_turns ADD COLUMN source_turn_id TEXT")
         if "raw_refs_json" not in columns:
             cursor.execute("ALTER TABLE session_turns ADD COLUMN raw_refs_json TEXT")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_llm_outputs_target ON llm_outputs(target_type, target_id, id DESC)")
         conn.commit()

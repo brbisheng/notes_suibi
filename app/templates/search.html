@@ -8,5 +8,5 @@
   <label>结束日期</label><input type="date" name="end_date" value="{{ filters.end_date }}" />
   <button type="submit">搜索</button>
 </form>
-<section class="recent"><h2>结果</h2>{% if results %}<ul>{% for entry in results %}<li><div class="meta"><span>{{ entry.date }}</span><span>{{ entry.record_type }}</span><span>{{ entry.source_type }}</span></div><p>{{ entry.raw_content }}</p></li>{% endfor %}</ul>{% else %}<p class="empty">没有找到结果。</p>{% endif %}</section>
+<section class="recent"><h2>结果</h2>{% if results %}<ul>{% for entry in results %}<li><div class="meta"><span>{{ entry.date }}</span><span>{{ entry.record_type }}</span><span>{{ entry.source_type }}</span></div><p>{{ entry.raw_content }}</p>{% if entry.llm_summary %}<p><strong>最近整理:</strong> {{ entry.llm_summary }}（{{ entry.llm_model }} @ {{ entry.llm_created_at }}）</p>{% endif %}<form method="post" action="/organize/entry/{{ entry.id }}"><button type="submit">整理</button></form></li>{% endfor %}</ul>{% else %}<p class="empty">没有找到结果。</p>{% endif %}</section>
 </main></body></html>
