@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Suibi</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>随笔</h1>
+
+    {% if success %}
+      <div class="flash success">保存成功</div>
+    {% endif %}
+
+    <form method="post" action="/entries" class="entry-form">
+      <label for="raw_content">记录内容</label>
+      <textarea id="raw_content" name="raw_content" required autofocus placeholder="此刻发生了什么，或你在想什么？"></textarea>
+
+      <label for="record_type">类型</label>
+      <select id="record_type" name="record_type" required>
+        {% for item in record_types %}
+          <option value="{{ item }}">{{ item }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="tags">标签</label>
+      <input id="tags" name="tags" type="text" placeholder="例如：work,idea,health" />
+
+      <label for="project">项目（可选）</label>
+      <input id="project" name="project" type="text" placeholder="例如：life-tracer" />
+
+      <button type="submit">保存</button>
+    </form>
+
+    <section class="recent">
+      <h2>今天最近 10 条</h2>
+      {% if recent_entries %}
+        <ul>
+          {% for entry in recent_entries %}
+            <li>
+              <div class="meta">
+                <span>{{ entry.created_at }}</span>
+                <span>{{ entry.record_type }}</span>
+                {% if entry.tags %}<span>#{{ entry.tags }}</span>{% endif %}
+              </div>
+              <p>{{ entry.raw_content }}</p>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="empty">今天还没有记录。</p>
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>
