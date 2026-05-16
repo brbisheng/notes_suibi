@@ -12,6 +12,7 @@ from app.auth import auth_dependency, authenticate_password, logout
 from app.config import get_settings
 from app.export import export_jsonl, export_markdown
 from app.importers.codex_jsonl import import_codex_jsonl
+from app.llm.organizer import run_entry_organize, run_turn_organize
 from app.query import get_recent_today_entries, get_today_entries_grouped, search_entries
 
 app = FastAPI(title="Suibi MVP")
@@ -194,10 +195,16 @@ def import_detail(import_id: int, request: Request, _: None = Depends(auth_depen
         cursor.execute(
             """
             SELECT
-                st.user_request, st.final_summary, st.turn_index, st.source_turn_id, st.raw_refs_json,
+                st.id, st.user_request, st.final_summary, st.turn_index, st.source_turn_id, st.raw_refs_json,
+                o.summary AS llm_summary, o.model AS llm_model, o.created_at AS llm_created_at,
                 s.source_session_id, s.project_path
             FROM session_turns st
             JOIN sessions s ON s.id = st.session_id
+            LEFT JOIN llm_outputs o ON o.id = (
+                SELECT lo.id FROM llm_outputs lo
+                WHERE lo.target_type = 'turn' AND lo.target_id = st.id
+                ORDER BY lo.id DESC LIMIT 1
+            )
             WHERE s.raw_import_id = ?
             ORDER BY s.id ASC, st.turn_index ASC, st.id ASC
             LIMIT 50
@@ -221,3 +228,15 @@ def import_detail(import_id: int, request: Request, _: None = Depends(auth_depen
         "import_detail.html",
         {"raw": raw, "turns": turns, "parse_stats": parse_stats},
     )
+
+
+@app.post("/organize/entry/{entry_id}")
+def organize_entry(entry_id: int, _: None = Depends(auth_dependency)):
+    run_entry_organize(entry_id)
+    return RedirectResponse(url="/today", status_code=303)
+
+
+@app.post("/organize/turn/{turn_id}")
+def organize_turn(turn_id: int, import_id: int = Form(...), _: None = Depends(auth_dependency)):
+    run_turn_organize(turn_id)
+    return RedirectResponse(url=f"/import/{import_id}", status_code=303)
