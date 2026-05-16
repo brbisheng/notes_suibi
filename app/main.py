@@ -1,6 +1,7 @@
+from pathlib import Path
 from datetime import datetime
 
-from fastapi import Depends, FastAPI, Form, Request
+from fastapi import Depends, FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -9,6 +10,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.auth import auth_dependency, authenticate_password, logout
 from app.config import get_settings
 from app.db import get_connection
+from app.importers.codex_jsonl import import_codex_jsonl
 
 app = FastAPI(title="Suibi MVP")
 app.add_middleware(
@@ -121,3 +123,49 @@ def create_entry(
         conn.commit()
 
     return RedirectResponse(url="/?success=1", status_code=303)
+
+
+@app.get("/import")
+def import_page(request: Request, _: None = Depends(auth_dependency)):
+    return templates.TemplateResponse(request, "import.html", {})
+
+
+@app.post("/import")
+def import_codex_file(file: UploadFile = File(...), _: None = Depends(auth_dependency)):
+    tmp_dir = Path("data/imports/tmp")
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    tmp_path = tmp_dir / (file.filename or "upload.jsonl")
+    with tmp_path.open("wb") as out:
+        out.write(file.file.read())
+
+    import_id = import_codex_jsonl(tmp_path)
+    return RedirectResponse(url=f"/import/{import_id}", status_code=303)
+
+
+@app.get("/import/{import_id}")
+def import_detail(import_id: int, request: Request, _: None = Depends(auth_dependency)):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM raw_imports WHERE id = ?", (import_id,))
+        raw = cursor.fetchone()
+        cursor.execute(
+            """
+            SELECT st.user_request, st.final_summary, s.source_session_id, s.project_path
+            FROM session_turns st
+            JOIN sessions s ON s.id = st.session_id
+            WHERE s.raw_import_id = ?
+            ORDER BY st.id ASC
+            LIMIT 50
+            """,
+            (import_id,),
+        )
+        turns = cursor.fetchall()
+
+    if raw is None:
+        return RedirectResponse(url="/import", status_code=303)
+
+    return templates.TemplateResponse(
+        request,
+        "import_detail.html",
+        {"raw": raw, "turns": turns},
+    )

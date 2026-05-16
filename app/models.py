@@ -15,6 +15,46 @@ MVP_TABLE_SQL = [
         updated_at TEXT NOT NULL
     );
     """,
+
+    """
+    CREATE TABLE IF NOT EXISTS raw_imports (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        source TEXT NOT NULL,
+        file_name TEXT NOT NULL,
+        file_path TEXT NOT NULL,
+        parse_status TEXT NOT NULL,
+        parse_error TEXT,
+        failed_input_path TEXT,
+        session_count INTEGER NOT NULL DEFAULT 0,
+        turn_count INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    );
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        raw_import_id INTEGER NOT NULL,
+        source_session_id TEXT,
+        project_path TEXT,
+        metadata TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (raw_import_id) REFERENCES raw_imports(id)
+    );
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS session_turns (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id INTEGER NOT NULL,
+        user_request TEXT,
+        final_summary TEXT,
+        timing TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (session_id) REFERENCES sessions(id)
+    );
+    """,
     """
     CREATE TABLE IF NOT EXISTS auth_attempts (
         ip TEXT NOT NULL,
