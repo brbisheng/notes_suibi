@@ -107,3 +107,26 @@ button {
 }
 
 .empty { color: var(--muted); }
+
+.flash.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.btn-inline {
+  width: auto;
+  margin-top: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+}

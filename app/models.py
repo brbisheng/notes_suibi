@@ -15,4 +15,14 @@ MVP_TABLE_SQL = [
         updated_at TEXT NOT NULL
     );
     """,
+    """
+    CREATE TABLE IF NOT EXISTS auth_attempts (
+        ip TEXT NOT NULL,
+        session_id TEXT NOT NULL,
+        fail_count INTEGER NOT NULL DEFAULT 0,
+        locked_until TEXT,
+        updated_at TEXT NOT NULL,
+        PRIMARY KEY (ip, session_id)
+    );
+    """,
 ]
