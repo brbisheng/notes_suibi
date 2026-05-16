@@ -47,6 +47,9 @@ MVP_TABLE_SQL = [
     CREATE TABLE IF NOT EXISTS session_turns (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         session_id INTEGER NOT NULL,
+        turn_index INTEGER,
+        source_turn_id TEXT,
+        raw_refs_json TEXT,
         user_request TEXT,
         final_summary TEXT,
         timing TEXT,

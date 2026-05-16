@@ -20,7 +20,27 @@
       <p><strong>状态：</strong>{{ raw.parse_status }}</p>
       <p><strong>会话数：</strong>{{ raw.session_count }}</p>
       <p><strong>关键轮次数：</strong>{{ raw.turn_count }}</p>
-      {% if raw.parse_error %}<p><strong>错误：</strong>{{ raw.parse_error }}</p>{% endif %}
+      {% if parse_stats %}
+        <p><strong>失败条数：</strong>{{ parse_stats.failed_count or 0 }}</p>
+        {% if parse_stats.missing %}
+          <p><strong>关键字段缺失统计：</strong>
+            session_id={{ parse_stats.missing.session_id or 0 }},
+            user_request={{ parse_stats.missing.user_request or 0 }},
+            final_summary={{ parse_stats.missing.final_summary or 0 }}
+          </p>
+        {% endif %}
+        {% if parse_stats.failures %}
+          <p><strong>失败明细（前50条）：</strong></p>
+          <ul>
+            {% for failure in parse_stats.failures %}
+              <li>{{ failure }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+        {% if parse_stats.raw_error %}<p><strong>错误：</strong>{{ parse_stats.raw_error }}</p>{% endif %}
+      {% elif raw.parse_error %}
+        <p><strong>错误：</strong>{{ raw.parse_error }}</p>
+      {% endif %}
       {% if raw.failed_input_path %}<p><strong>失败文件副本：</strong>{{ raw.failed_input_path }}</p>{% endif %}
     </section>
 
@@ -32,10 +52,13 @@
             <li>
               <div class="meta">
                 <span>Session: {{ turn.source_session_id or 'N/A' }}</span>
+                <span>Turn: {{ turn.turn_index or 'N/A' }}</span>
+                {% if turn.source_turn_id %}<span>SourceTurnID: {{ turn.source_turn_id }}</span>{% endif %}
                 {% if turn.project_path %}<span>{{ turn.project_path }}</span>{% endif %}
               </div>
               <p><strong>User:</strong> {{ turn.user_request or '（空）' }}</p>
               <p><strong>Summary:</strong> {{ turn.final_summary or '（空）' }}</p>
+              {% if turn.raw_refs_json %}<p><strong>Refs:</strong> {{ turn.raw_refs_json }}</p>{% endif %}
             </li>
           {% endfor %}
         </ul>
