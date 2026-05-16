@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>导入结果 - Suibi</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <main class="container">
+    <div class="topbar">
+      <h1>导入结果 #{{ raw.id }}</h1>
+      <a href="/import" class="btn-link">继续导入</a>
+    </div>
+
+    <section class="recent">
+      <p><strong>来源：</strong>{{ raw.source }}</p>
+      <p><strong>文件：</strong>{{ raw.file_name }}</p>
+      <p><strong>原始文件路径：</strong>{{ raw.file_path }}</p>
+      <p><strong>状态：</strong>{{ raw.parse_status }}</p>
+      <p><strong>会话数：</strong>{{ raw.session_count }}</p>
+      <p><strong>关键轮次数：</strong>{{ raw.turn_count }}</p>
+      {% if raw.parse_error %}<p><strong>错误：</strong>{{ raw.parse_error }}</p>{% endif %}
+      {% if raw.failed_input_path %}<p><strong>失败文件副本：</strong>{{ raw.failed_input_path }}</p>{% endif %}
+    </section>
+
+    <section class="recent">
+      <h2>关键轮次摘要（V1）</h2>
+      {% if turns %}
+        <ul>
+          {% for turn in turns %}
+            <li>
+              <div class="meta">
+                <span>Session: {{ turn.source_session_id or 'N/A' }}</span>
+                {% if turn.project_path %}<span>{{ turn.project_path }}</span>{% endif %}
+              </div>
+              <p><strong>User:</strong> {{ turn.user_request or '（空）' }}</p>
+              <p><strong>Summary:</strong> {{ turn.final_summary or '（空）' }}</p>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="empty">没有可展示的关键轮次。</p>
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>

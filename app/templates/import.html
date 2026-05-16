@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>导入 - Suibi</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <main class="container">
+    <div class="topbar">
+      <h1>导入 Codex JSONL</h1>
+      <a href="/" class="btn-link">返回首页</a>
+    </div>
+
+    <form method="post" action="/import" enctype="multipart/form-data" class="entry-form">
+      <label for="file">选择 .jsonl 文件</label>
+      <input id="file" name="file" type="file" accept=".jsonl,application/json" required />
+      <p class="empty">第一版只提取关键轮次摘要，不展开全部 tool call 细节。</p>
+      <button type="submit">开始导入</button>
+    </form>
+  </main>
+</body>
+</html>

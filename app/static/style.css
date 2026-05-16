@@ -130,3 +130,5 @@ button {
   padding: 8px 12px;
   border-radius: 8px;
 }
+
+.btn-link { color: var(--accent); text-decoration: none; font-size: 14px; }
