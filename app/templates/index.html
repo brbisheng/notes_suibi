@@ -18,6 +18,11 @@
     {% if success %}
       <div class="flash success">保存成功</div>
     {% endif %}
+    <section class="quick-nav">
+      <a class="nav-btn" href="/today">Today</a>
+      <a class="nav-btn" href="/search">Search</a>
+      <a class="nav-btn" href="/export">Export</a>
+    </section>
 
     <form method="post" action="/entries" class="entry-form">
       <label for="raw_content">记录内容</label>

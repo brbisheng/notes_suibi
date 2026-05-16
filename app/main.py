@@ -2,15 +2,16 @@ from pathlib import Path
 from datetime import datetime
 
 from fastapi import Depends, FastAPI, File, Form, Request, UploadFile
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.auth import auth_dependency, authenticate_password, logout
 from app.config import get_settings
-from app.db import get_connection
+from app.export import export_jsonl, export_markdown
 from app.importers.codex_jsonl import import_codex_jsonl
+from app.query import get_recent_today_entries, get_today_entries_grouped, search_entries
 
 app = FastAPI(title="Suibi MVP")
 app.add_middleware(
@@ -61,19 +62,7 @@ def do_logout(request: Request):
 
 @app.get("/")
 def home(request: Request, success: int = 0, _: None = Depends(auth_dependency)):
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            SELECT id, raw_content, record_type, tags, created_at
-            FROM entries
-            WHERE date = date('now', 'localtime')
-            ORDER BY created_at DESC
-            LIMIT 10
-            """
-        )
-        recent_entries = cursor.fetchall()
-
+    recent_entries = get_recent_today_entries(limit=10)
     return templates.TemplateResponse(
         request,
         "index.html",
@@ -83,6 +72,55 @@ def home(request: Request, success: int = 0, _: None = Depends(auth_dependency))
             "recent_entries": recent_entries,
         },
     )
+
+
+@app.get("/today")
+def today_page(request: Request, _: None = Depends(auth_dependency)):
+    grouped_entries = get_today_entries_grouped()
+    return templates.TemplateResponse(request, "today.html", {"grouped_entries": grouped_entries})
+
+
+@app.get("/search")
+def search_page(
+    request: Request,
+    keyword: str = "",
+    record_type: str = "",
+    start_date: str = "",
+    end_date: str = "",
+    _: None = Depends(auth_dependency),
+):
+    results = search_entries(keyword, record_type, start_date, end_date)
+    return templates.TemplateResponse(
+        request,
+        "search.html",
+        {
+            "results": results,
+            "record_types": RECORD_TYPES,
+            "filters": {
+                "keyword": keyword,
+                "record_type": record_type,
+                "start_date": start_date,
+                "end_date": end_date,
+            },
+        },
+    )
+
+
+@app.get("/export")
+def export_page(request: Request, _: None = Depends(auth_dependency)):
+    return templates.TemplateResponse(request, "export.html", {})
+
+
+@app.get("/export/jsonl")
+def export_jsonl_file(_: None = Depends(auth_dependency)):
+    out_path = export_jsonl()
+    return FileResponse(path=out_path, filename=out_path.name, media_type="application/x-ndjson")
+
+
+@app.get("/export/markdown")
+def export_markdown_file(_: None = Depends(auth_dependency)):
+    out_path = export_markdown()
+    return FileResponse(path=out_path, filename=out_path.name, media_type="text/markdown")
 
 
 @app.post("/entries")
@@ -95,6 +133,8 @@ def create_entry(
 ):
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     today = datetime.now().strftime("%Y-%m-%d")
+
+    from app.db import get_connection
 
     with get_connection() as conn:
         cursor = conn.cursor()
@@ -144,6 +184,8 @@ def import_codex_file(file: UploadFile = File(...), _: None = Depends(auth_depen
 
 @app.get("/import/{import_id}")
 def import_detail(import_id: int, request: Request, _: None = Depends(auth_dependency)):
+    from app.db import get_connection
+
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM raw_imports WHERE id = ?", (import_id,))
