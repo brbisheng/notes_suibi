@@ -8,7 +8,12 @@
 </head>
 <body>
   <main class="container">
-    <h1>随笔</h1>
+    <div class="topbar">
+      <h1>随笔</h1>
+      <form method="post" action="/logout">
+        <button type="submit" class="btn-inline">退出登录</button>
+      </form>
+    </div>
 
     {% if success %}
       <div class="flash success">保存成功</div>

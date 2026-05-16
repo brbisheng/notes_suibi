@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>登录 - Suibi</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>登录</h1>
+
+    {% if error %}
+      <div class="flash error">
+        <p>{{ error }}</p>
+        <p>剩余尝试次数：{{ remaining_attempts }}</p>
+        {% if locked_until %}
+          <p>锁定到期时间：{{ locked_until }}</p>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <form method="post" action="/login" class="entry-form">
+      <label for="password">访问密码</label>
+      <input id="password" name="password" type="password" required autofocus placeholder="输入访问密码" />
+      <button type="submit">登录</button>
+    </form>
+  </main>
+</body>
+</html>

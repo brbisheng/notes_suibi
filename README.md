@@ -41,3 +41,10 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 1. 定义 SQLAlchemy 模型。
 2. 初始化 Alembic 并生成首个 revision。
 3. 使用 `alembic upgrade head` 执行迁移。
+
+## 6) 认证与安全边界（MVP）
+
+- 当前采用**单用户密码**登录，适合个人或小范围自托管场景。
+- 登录失败按 `IP + 会话标识` 计数，连续失败 5 次锁定 10 分钟。
+- 失败记录持久化在 SQLite 的 `auth_attempts` 表中，服务重启后不会丢失。
+- 本方案仅用于 MVP 基础防护，**不替代企业级 IAM/SSO、多因素认证、细粒度 RBAC、审计合规能力**。
