@@ -7,7 +7,7 @@
 ```bash
 mkdir -p /opt/suibi
 cd /opt/suibi
-tar -xzf /path/to/suibi_backup_YYYYmmdd_HHMMSS.tar.gz
+tar -xzf /path/to/suibi_release_YYYYmmdd_HHMMSS.tar.gz
 ```
 
 ## 2) 创建 venv 并安装依赖
@@ -31,7 +31,7 @@ python scripts/init_db.py
 ## 4) 启动 systemd 服务
 
 ```bash
-sudo cp life-tracer.service /etc/systemd/system/life-tracer.service
+sudo cp deploy/life-tracer.service /etc/systemd/system/life-tracer.service
 sudo systemctl daemon-reload
 sudo systemctl enable --now life-tracer.service
 sudo systemctl status life-tracer.service

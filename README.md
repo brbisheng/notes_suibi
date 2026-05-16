@@ -33,32 +33,12 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 1. 创建虚拟环境并安装依赖（参考上文）。
 2. 准备环境变量（`.env`）。
-3. 部署 `life-tracer.service` 到 `/etc/systemd/system/`。
-
-`life-tracer.service` 示例：
-
-```ini
-[Unit]
-Description=Life Tracer FastAPI Service
-After=network.target
-
-[Service]
-User=www-data
-Group=www-data
-WorkingDirectory=/opt/suibi
-EnvironmentFile=/opt/suibi/.env
-ExecStart=/opt/suibi/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-```
+3. 使用仓库内示例：`deploy/life-tracer.service`（按实际机器修改 User/Group/WorkingDirectory）。
 
 启用与启动：
 
 ```bash
-sudo cp life-tracer.service /etc/systemd/system/life-tracer.service
+sudo cp deploy/life-tracer.service /etc/systemd/system/life-tracer.service
 sudo systemctl daemon-reload
 sudo systemctl enable --now life-tracer.service
 sudo systemctl status life-tracer.service
@@ -78,13 +58,16 @@ cloudflared tunnel --url http://127.0.0.1:8000
 
 ### 备份
 
-已提供脚本：`scripts/backup.sh`，会打包以下内容：
+已提供脚本：`scripts/backup.sh`（全量备份）与 `scripts/package_release.sh`（迁移发布包）。
+
+`package_release.sh` 默认打包以下内容（可选包含 `.env`）：
 
 - `app/`
 - `scripts/`
 - `requirements.txt`
-- `.env`
-- `data/`
+- `.env.example`
+- `README.md`
+- `data/`（存在时）
 
 执行：
 
@@ -96,13 +79,53 @@ bash scripts/backup.sh
 
 ```bash
 bash scripts/backup.sh /path/to/backup_dir
+
+# 迁移发布包（推荐）
+bash scripts/package_release.sh releases true
 ```
 
 ### 恢复
 
-详见：[`scripts/restore.md`](scripts/restore.md)
+优先使用自动恢复脚本：
 
-## 6) 迁移验证清单
+```bash
+bash scripts/restore.sh /path/to/suibi_release_YYYYmmdd_HHMMSS.tar.gz /opt/suibi
+```
+
+手动恢复步骤详见：[`scripts/restore.md`](scripts/restore.md)
+
+
+## 6) 30分钟迁移 SOP（最短路径）
+
+### 打包端（旧机器）
+
+```bash
+cd /path/to/notes_suibi
+bash scripts/package_release.sh releases true
+# 产物示例：releases/suibi_release_YYYYmmdd_HHMMSS.tar.gz
+```
+
+> 参数 `true` 表示可选包含 `.env`；若不想打包 `.env`，可省略该参数。
+
+### 恢复端（新机器）
+
+```bash
+mkdir -p /opt/suibi
+cd /opt/suibi
+# 假设备份包已上传到 /tmp
+bash scripts/restore.sh /tmp/suibi_release_YYYYmmdd_HHMMSS.tar.gz /opt/suibi
+
+# 启用 systemd
+sudo cp /opt/suibi/deploy/life-tracer.service /etc/systemd/system/life-tracer.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now life-tracer.service
+
+# 迁移后快速自检
+cd /opt/suibi
+bash scripts/smoke_check.sh http://127.0.0.1:8000
+```
+
+## 7) 迁移验证清单
 
 迁移到新机器或新环境后，至少验证：
 
@@ -111,7 +134,7 @@ bash scripts/backup.sh /path/to/backup_dir
 - [ ] imports 可读写（导入页可读取文件并成功入库）。
 - [ ] exports 可读写（导出文件可生成并可下载/读取）。
 
-## 7) 迁移总览
+## 8) 迁移总览
 
 当前为 MVP 阶段，使用 `app/models.py` 中的 SQL 直接建表。
 后续建议引入 Alembic 做版本化迁移：
@@ -120,7 +143,7 @@ bash scripts/backup.sh /path/to/backup_dir
 2. 初始化 Alembic 并生成首个 revision。
 3. 使用 `alembic upgrade head` 执行迁移。
 
-## 8) 认证与安全边界（MVP）
+## 9) 认证与安全边界（MVP）
 
 - 当前采用**单用户密码**登录，适合个人或小范围自托管场景。
 - 登录失败按 `IP + 会话标识` 计数，连续失败 5 次锁定 10 分钟。
