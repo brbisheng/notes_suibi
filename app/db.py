@@ -21,4 +21,12 @@ def init_db() -> None:
         cursor = conn.cursor()
         for sql in MVP_TABLE_SQL:
             cursor.execute(sql)
+        cursor.execute("PRAGMA table_info(session_turns)")
+        columns = {row[1] for row in cursor.fetchall()}
+        if "turn_index" not in columns:
+            cursor.execute("ALTER TABLE session_turns ADD COLUMN turn_index INTEGER")
+        if "source_turn_id" not in columns:
+            cursor.execute("ALTER TABLE session_turns ADD COLUMN source_turn_id TEXT")
+        if "raw_refs_json" not in columns:
+            cursor.execute("ALTER TABLE session_turns ADD COLUMN raw_refs_json TEXT")
         conn.commit()

@@ -1,5 +1,6 @@
 from pathlib import Path
 from datetime import datetime
+import json
 
 from fastapi import Depends, FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import FileResponse, RedirectResponse
@@ -192,11 +193,13 @@ def import_detail(import_id: int, request: Request, _: None = Depends(auth_depen
         raw = cursor.fetchone()
         cursor.execute(
             """
-            SELECT st.user_request, st.final_summary, s.source_session_id, s.project_path
+            SELECT
+                st.user_request, st.final_summary, st.turn_index, st.source_turn_id, st.raw_refs_json,
+                s.source_session_id, s.project_path
             FROM session_turns st
             JOIN sessions s ON s.id = st.session_id
             WHERE s.raw_import_id = ?
-            ORDER BY st.id ASC
+            ORDER BY s.id ASC, st.turn_index ASC, st.id ASC
             LIMIT 50
             """,
             (import_id,),
@@ -206,8 +209,15 @@ def import_detail(import_id: int, request: Request, _: None = Depends(auth_depen
     if raw is None:
         return RedirectResponse(url="/import", status_code=303)
 
+    parse_stats = None
+    if raw["parse_error"]:
+        try:
+            parse_stats = json.loads(raw["parse_error"])
+        except json.JSONDecodeError:
+            parse_stats = {"raw_error": raw["parse_error"]}
+
     return templates.TemplateResponse(
         request,
         "import_detail.html",
-        {"raw": raw, "turns": turns},
+        {"raw": raw, "turns": turns, "parse_stats": parse_stats},
     )
